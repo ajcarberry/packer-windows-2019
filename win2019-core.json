@@ -39,7 +39,7 @@
       "source_ami_filter": {
         "filters": {
           "virtualization-type": "hvm",
-          "name": "Windows_Server-2016-English-Full-Base-*",
+          "name": "Windows_Server-2019-English-Core-Base-*",
           "root-device-type": "ebs"
         },
         "owners": ["801119661308"],
@@ -63,13 +63,13 @@
       "boot_wait": "5s",
       "disk_size": "40960",
       "communicator":"winrm",
-      "winrm_username": "Administrator",
-      "winrm_password": "packer",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
       "winrm_use_ssl": true,
       "winrm_insecure": true,
       "winrm_timeout": "4h",
       "floppy_files": [
-        "autounattend.xml"
+        "floppy/autounattend.xml"
       ],
       "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
       "shutdown_timeout": "30m",
@@ -106,7 +106,7 @@
       ],
       "pause_before": "4m"
     }
-  ]
+  ],
   "post-processors": [
     [
       {
