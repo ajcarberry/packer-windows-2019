@@ -68,10 +68,10 @@
       "winrm_password": "vagrant",
       "floppy_files": [
         "unattended/base/autounattend.xml",
-        "unattended/sysprep/unattend.xml",
         "scripts/disable-winrm.ps1",
         "scripts/enable-winrm.ps1",
-        "scripts/sysprep.bat"
+        "scripts/sysprep.bat",
+        "unattended/sysprep/unattend.xml"
       ],
       "shutdown_command": "a:/sysprep.bat",
       "shutdown_timeout": "30m",
