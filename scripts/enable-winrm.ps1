@@ -5,13 +5,22 @@ $Connections | ForEach-Object { $_.GetNetwork().SetCategory(1) }
 Enable-PSRemoting -Force
 winrm quickconfig -q
 winrm quickconfig -transport:http
-winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+winrm set winrm/config '@{MaxTimeoutms="7200000"}'
 winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="800"}'
 winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service '@{MaxConcurrentOperationsPerUser="12000"}'
 winrm set winrm/config/service/auth '@{Basic="true"}'
 winrm set winrm/config/client/auth '@{Basic="true"}'
 winrm set winrm/config/listener?Address=*+Transport=HTTP '@{Port="5985"}'
+
+# Configure UAC to allow privilege elevation in remote shells
+$Key = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+$Setting = 'LocalAccountTokenFilterPolicy'
+Set-ItemProperty -Path $Key -Name $Setting -Value 1 -Force
+
+# Configure and restart the WinRM Service; Enable the required firewall exception
+Stop-Service -Name WinRM
+Set-Service -Name WinRM -StartupType Automatic
 netsh advfirewall firewall set rule group="Windows Remote Administration" new enable=yes
-netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-In)" new enable=yes action=allow
-Set-Service winrm -startuptype "auto"
-Restart-Service winrm
+netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-In)" new action=allow localip=any remoteip=any
+Start-Service -Name WinRM

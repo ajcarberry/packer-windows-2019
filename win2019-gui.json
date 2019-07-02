@@ -10,11 +10,11 @@
       "region": "us-east-1",
       "profile": "{{ user `profile`}}",
       "instance_type": "t2.micro",
-      "user_data_file": "floppy/bootstrap.txt",
+      "user_data_file": "unattended/bootstrap.txt",
       "communicator": "winrm",
       "winrm_username": "Administrator",
       "winrm_timeout": "15m",
-      "ami_name": "windows-{{user `version`}}",
+      "ami_name": "win19-{{user `version`}}",
       "shutdown_behavior": "terminate",
       "subnet_filter": {
         "filters": {
@@ -25,7 +25,7 @@
       },
       "run_tags": {
         "Base_AMI_Name": "{{ .SourceAMIName }}",
-        "Name": "bake-windows-{{user `version`}}",
+        "Name": "bake-win19-{{user `version`}}",
         "Environment": "{{user `profile` }}",
         "Version": "{{user `version`}}",
         "Automation": "packer"
@@ -34,7 +34,7 @@
         "OS": "windows",
         "Release": "2019",
         "Base_AMI_Name": "{{ .SourceAMIName }}",
-        "Name": "base-windows-{{user `version`}}",
+        "Name": "base-win19-{{user `version`}}",
         "Environment": "{{ user `profile` }}",
         "Version": "{{user `version`}}",
         "Automation": "packer"
@@ -67,12 +67,11 @@
       "winrm_username": "vagrant",
       "winrm_password": "vagrant",
       "floppy_files": [
-        "floppy/autounattend.xml",
-        "./scripts/disable-screensaver.ps1",
-        "./scripts/disable-winrm.ps1",
-        "./scripts/enable-winrm.ps1",
-        "./scripts/unattend.xml",
-        "./scripts/sysprep.bat"
+        "unattended/base/autounattend.xml",
+        "scripts/disable-winrm.ps1",
+        "scripts/enable-winrm.ps1",
+        "scripts/sysprep.bat",
+        "unattended/sysprep/unattend.xml"
       ],
       "shutdown_command": "a:/sysprep.bat",
       "shutdown_timeout": "30m",
@@ -83,46 +82,6 @@
     }
   ],
   "provisioners": [
-    {
-      "execute_command": "{{ .Vars }} cmd /c \"{{ .Path }}\"",
-      "scripts": [
-        "./scripts/vm-guest-tools.bat",
-        "./scripts/enable-rdp.bat"
-      ],
-      "type": "windows-shell"
-    },
-    {
-      "scripts": [
-        "./scripts/debloat-windows.ps1"
-      ],
-      "type": "powershell"
-    },
-    {
-      "type": "windows-restart",
-      "restart_timeout": "30m"
-    },
-    {
-      "execute_command": "{{ .Vars }} cmd /c \"{{ .Path }}\"",
-      "scripts": [
-        "./scripts/set-winrm-automatic.bat",
-        "./scripts/uac-disable.bat",
-        "./scripts/compile-dotnet-assemblies.bat",
-        "./scripts/dis-updates.bat"
-      ],
-      "type": "windows-shell"
-    },
-    {
-      "type": "windows-restart",
-      "restart_timeout": "30m",
-      "only": ["virtualbox-iso"]
-    },
-    {
-      "type": "powershell",
-      "scripts": [
-        "scripts/cleanup.ps1"
-      ],
-      "pause_before": "4m"
-    },
     {
       "type": "powershell",
       "inline": [
