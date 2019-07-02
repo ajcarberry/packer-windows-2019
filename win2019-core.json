@@ -10,8 +10,11 @@
       "region": "us-east-1",
       "profile": "{{ user `profile`}}",
       "instance_type": "t2.micro",
-      "ssh_username": "admin",
-      "ami_name": "windows-{{user `version`}}",
+      "user_data_file": "unattended/bootstrap.txt",
+      "communicator": "winrm",
+      "winrm_username": "Administrator",
+      "winrm_timeout": "15m",
+      "ami_name": "win19core-{{user `version`}}",
       "shutdown_behavior": "terminate",
       "subnet_filter": {
         "filters": {
@@ -22,16 +25,16 @@
       },
       "run_tags": {
         "Base_AMI_Name": "{{ .SourceAMIName }}",
-        "Name": "bake-windows-{{user `version`}}",
+        "Name": "bake-win19core-{{user `version`}}",
         "Environment": "{{user `profile` }}",
         "Version": "{{user `version`}}",
         "Automation": "packer"
       },
       "tags": {
         "OS": "windows",
-        "Release": "2019",
+        "Release": "2019 Core",
         "Base_AMI_Name": "{{ .SourceAMIName }}",
-        "Name": "base-windows-{{user `version`}}",
+        "Name": "base-win19core-{{user `version`}}",
         "Environment": "{{ user `profile` }}",
         "Version": "{{user `version`}}",
         "Automation": "packer"
@@ -39,7 +42,7 @@
       "source_ami_filter": {
         "filters": {
           "virtualization-type": "hvm",
-          "name": "Windows_Server-2019-English-Core-Base-*",
+          "name": "Windows_Server-2019-English-Core-Base*",
           "root-device-type": "ebs"
         },
         "owners": ["801119661308"],
@@ -49,29 +52,28 @@
     {
       "type": "virtualbox-iso",
       "guest_os_type": "Windows2016_64",
-      "vm_name": "packer-win2019",
+      "vm_name": "packer-win2019core",
       "iso_urls": [
         "iso/17763.1.180914-1434.rs5_release_SERVER_EVAL_X64FRE_EN-US.ISO",
         "https://software-download.microsoft.com/download/pr/17763.1.180914-1434.rs5_release_SERVER_EVAL_X64FRE_EN-US.ISO"
       ],
-      "{{user `iso_url`}}",
       "iso_checksum_type": "sha1",
       "iso_checksum": "c4834f538a90bb41f625144c9a2e0edf8bb9b9b5",
-      "guest_additions_mode": "attach",
-      "guest_additions_path": "c:/Windows/Temp/windows.iso",
-      "headless": false,
+      "guest_additions_mode": "disable",
+      "headless": true,
       "boot_wait": "5s",
       "disk_size": "40960",
       "communicator":"winrm",
       "winrm_username": "vagrant",
       "winrm_password": "vagrant",
-      "winrm_use_ssl": true,
-      "winrm_insecure": true,
-      "winrm_timeout": "4h",
       "floppy_files": [
-        "floppy/autounattend.xml"
+        "unattended/core/autounattend.xml",
+        "scripts/disable-winrm.ps1",
+        "scripts/enable-winrm.ps1",
+        "scripts/sysprep.bat",
+        "unattended/sysprep/unattend.xml"
       ],
-      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+      "shutdown_command": "a:/sysprep.bat",
       "shutdown_timeout": "30m",
       "vboxmanage": [
         ["modifyvm", "{{.Name}}", "--memory", "2048"],
@@ -81,42 +83,25 @@
   ],
   "provisioners": [
     {
-      "type": "windows-update"
-    },
-    {
-      "type": "windows-restart",
-      "restart_timeout": "30m"
-    },
-    {
       "type": "powershell",
-      "only": ["virtualbox-iso"],
-      "scripts": [
-        "scripts/virtualbox-guest-additions.ps1"
-      ]
-    },
-    {
-      "type": "windows-restart",
-      "restart_timeout": "30m",
-      "only": ["virtualbox-iso"]
-    },
-    {
-      "type": "powershell",
-      "scripts": [
-        "scripts/cleanup.ps1"
+      "inline": [
+        "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\SendWindowsIsReady.ps1 -Schedule",
+        "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\InitializeInstance.ps1 -Schedule",
+        "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\SysprepInstance.ps1 -NoShutdown"
       ],
-      "pause_before": "4m"
+      "only": ["amazon-ebs"]
     }
   ],
   "post-processors": [
     [
       {
         "type": "vagrant",
-        "output": "builds/windows-2019.box",
+        "output": "builds/windows-2019-core.box",
         "only": ["virtualbox-iso"]
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "ajcarberry/windows2019",
+        "box_tag": "ajcarberry/windows2019-core",
         "version": "{{user `version`}}",
         "access_token": "{{user `cloud_token`}}",
         "only": ["virtualbox-iso"]
