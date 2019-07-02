@@ -1,0 +1,5 @@
+---
+
+- src: https://github.com/ajcarberry/ansible-role-packer-windows
+  version: master
+  name: ajcarberry.packer-windows

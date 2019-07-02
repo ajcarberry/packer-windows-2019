@@ -4,8 +4,7 @@
   gather_facts: yes
 
   roles:
-    -
+    - ajcarberry.packer-windows
 
   tasks:
     - name: Install standalone packages.
-      
